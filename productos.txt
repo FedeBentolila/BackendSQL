@@ -1,0 +1,82 @@
+[
+
+{
+
+
+"title": "Escuadra",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/Squadra.jpg",
+
+
+"id": 1
+
+},
+
+{
+
+
+"title": "Escuadra",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/Squadra.jpg",
+
+
+"id": 2
+
+},
+
+{
+
+
+"title": "Escuadra",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/Squadra.jpg",
+
+
+"id": 3
+
+},
+
+{
+
+
+"title": "Calculadora",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/calculadora.jpg",
+
+
+"id": 4
+
+},
+
+{
+
+
+"title": "Calculadora",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/calculadora.jpg",
+
+
+"id": 5
+
+}
+]
