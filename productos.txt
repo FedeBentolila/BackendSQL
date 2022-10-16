@@ -78,5 +78,21 @@
 
 "id": 5
 
+},
+
+{
+
+
+"title": "Globo terraqueo",
+
+
+"price": 120,
+
+
+"thumbnail": "./img/globo.jpg",
+
+
+"id": 6
+
 }
 ]

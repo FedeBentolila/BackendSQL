@@ -33,6 +33,8 @@ async function Save (Objeto){
             ...Objeto,
             id: idproductos,
         }
+
+        console.log("el ID del producto agregado es", idproductos)
         
         Arreglodeproductos.push(Objeto)
         
