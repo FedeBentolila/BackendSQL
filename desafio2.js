@@ -5,6 +5,74 @@ let Arreglodeproductos= []
 
 let idproductos= 1
 
+
+//// Express
+
+const express = require('express');
+const { response } = require("express");
+
+const aplicacion= express();
+
+const PUERTO= 8080;
+
+aplicacion.get('/', (peticion, respuesta)=>{
+    respuesta.send('Bienvenidos al servidor express');
+})
+
+aplicacion.get('/productos', (peticion, respuesta)=>{
+
+    getAll().then(()=> {
+      
+        respuesta.send(
+
+            Arreglodeproductos
+            
+        );
+
+    }
+    
+    ) 
+})
+
+aplicacion.get('/productoRandom', (peticion, respuesta)=>{
+    
+    function getRandomInt(min, max){
+        min= Math.ceil(min);
+        max= Math.floor(max)
+        return Math.floor(Math.random()* (max-min + 1) + min);
+    }
+
+    leerarchivo().then(()=>{
+
+        getByID(getRandomInt(1, Arreglodeproductos.length)).then(()=> {
+
+            respuesta.send(
+    
+            objetobuscado
+                
+            );
+    
+        }
+        
+        ) 
+
+
+    }
+    
+    )
+
+    
+})
+
+const conexionServidor= aplicacion.listen(PUERTO, ()=>{
+    console.log(`Aplicación escuchando en el puerto: ${conexionServidor.address().port}`);
+})
+
+conexionServidor.on('error', error => console.log(`Ha ocurrido un error: ${error}`))
+
+
+////Desafío previo
+
 async function leerarchivo(){
     try {
        
@@ -55,7 +123,8 @@ async function getByID (idabuscar){
         await leerarchivo()
         
         if (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar)) {
-            console.log(objetobuscado)
+            return objetobuscado
+            // console.log(objetobuscado)
         } else {
             console.log(null)
         }
@@ -70,7 +139,9 @@ async function getByID (idabuscar){
 async function getAll(){
     await leerarchivo()
 
-    console.log(Arreglodeproductos)
+    return Arreglodeproductos
+
+     console.log(Arreglodeproductos) 
 
 }
 
