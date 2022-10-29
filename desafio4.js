@@ -5,7 +5,6 @@ let Arreglodeproductos= []
 
 let idproductos= 1
 
-
 //// Express
 
 const express = require('express');
@@ -15,15 +14,28 @@ const aplicacion= express();
 
 const PUERTO= 8080;
 
-aplicacion.get('/', (peticion, respuesta)=>{
-    respuesta.send('Bienvenidos al servidor express');
-})
+// Lineas para usar Json
+aplicacion.use(express.json())
+aplicacion.use(express.urlencoded({extended: true}))
 
-aplicacion.get('/productos', (peticion, respuesta)=>{
+
+// Router
+const {Router} = express; 
+
+// Definir rutas
+
+const rutaProductos= Router();
+
+
+//Endpoints
+
+aplicacion.use('/api', rutaProductos);
+
+rutaProductos.get('/productos', (peticion, respuesta)=>{
 
     getAll().then(()=> {
       
-        respuesta.send(
+        respuesta.json(
 
             Arreglodeproductos
             
@@ -34,7 +46,7 @@ aplicacion.get('/productos', (peticion, respuesta)=>{
     ) 
 })
 
-aplicacion.get('/productoRandom', (peticion, respuesta)=>{
+rutaProductos.get('/productoRandom', (peticion, respuesta)=>{
     
     function getRandomInt(min, max){
         min= Math.ceil(min);
@@ -46,7 +58,7 @@ aplicacion.get('/productoRandom', (peticion, respuesta)=>{
 
         getByID(getRandomInt(1, Arreglodeproductos.length)).then(()=> {
 
-            respuesta.send(
+            respuesta.json(
     
             objetobuscado
                 
@@ -64,6 +76,164 @@ aplicacion.get('/productoRandom', (peticion, respuesta)=>{
     
 })
 
+rutaProductos.get('/productos/:id', (peticion, respuesta)=>{
+    
+    const id = parseInt(peticion.params.id);
+
+    leerarchivo().then(()=>{
+
+        getByID(id).then(()=> {
+
+            if (objetobuscado) {
+                respuesta.json(
+    
+                    objetobuscado
+                        
+                    );
+            } else {
+                respuesta.status(404)
+                respuesta.json({ error: "producto no encontrado"})
+            }
+            
+            
+    
+        }
+        
+        ) 
+
+
+    }
+    
+    )
+
+    
+})
+
+rutaProductos.post('/productos', (peticion, respuesta)=>{
+    const producto= peticion.body;
+    Save(producto).then(()=>{
+
+                getByID(idproductos).then(()=> {
+
+                if (objetobuscado) {
+                    respuesta.json(
+    
+                    objetobuscado
+                        
+                    );
+                } else {
+                respuesta.json({ error: "falla al buscar el producto agregado"})
+                }
+            
+            
+    
+             }
+    
+    )
+
+    })
+    
+})
+
+
+rutaProductos.put('/productos/:id', (peticion, respuesta)=>{
+    
+    const id = parseInt(peticion.params.id);
+
+    const Objeto= peticion.body;
+
+    leerarchivo().then(()=>{
+
+        getByID(id).then(()=> {
+
+            if (objetobuscado) {
+                deleteByID(id).then(()=>{
+
+                    leerarchivo().then(()=>{
+                        
+                        const Objetox = {
+                            ...Objeto,
+                            id: id,
+                        };
+        
+                        Arreglodeproductos.push(Objetox)
+
+                    }).then(()=>{
+                        fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
+
+                    })
+
+                })
+    
+                respuesta.json(
+    
+                    "producto actualizado"
+                        
+                    );
+            } else {
+                respuesta.status(404)
+                respuesta.json({ error: "producto no encontrado"})
+            }
+            
+            
+    
+        }
+        
+        ) 
+
+
+    }
+    
+    )
+
+    
+}) 
+
+
+rutaProductos.delete('/productos/:id', (peticion, respuesta)=>{
+    
+    const id = parseInt(peticion.params.id);
+
+    leerarchivo().then(()=>{
+
+        deleteByID(id).then(()=> {
+
+            if (objetobuscado) {
+                respuesta.json(
+    
+                    "producto eliminado"
+                        
+                    );
+            } else {
+                respuesta.status(404)
+                respuesta.json({ error: "producto no encontrado"})
+            }
+            
+            
+    
+        }
+        
+        ) 
+
+
+    }
+    
+    )
+
+    
+})
+
+
+
+
+
+
+////////// Carpeta public visible
+
+aplicacion.use(express.static(__dirname+ '/public'));
+
+
+
 const conexionServidor= aplicacion.listen(PUERTO, ()=>{
     console.log(`Aplicación escuchando en el puerto: ${conexionServidor.address().port}`);
 })
@@ -71,7 +241,7 @@ const conexionServidor= aplicacion.listen(PUERTO, ()=>{
 conexionServidor.on('error', error => console.log(`Ha ocurrido un error: ${error}`))
 
 
-////Desafío previo
+////Funciones
 
 async function leerarchivo(){
     try {
@@ -157,6 +327,8 @@ async function deleteByID (idabuscar){
 
             await fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
 
+            return objetobuscado
+
 
         } else {
             console.log("no existe ese archivo para borrar")
@@ -235,7 +407,7 @@ const producto3= new Contenedor(
 
 //getAll();
 
-//deleteByID(6)
+//deleteByID(7)
 
 //deleteAll()
 
