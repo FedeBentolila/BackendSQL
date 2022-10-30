@@ -1,413 +1,275 @@
+const fs = require("fs");
 
-const fs= require ("fs");
+let Arreglodeproductos = [];
 
-let Arreglodeproductos= []
-
-let idproductos= 1
+let idproductos = 1;
 
 //// Express
 
-const express = require('express');
+const express = require("express");
 const { response } = require("express");
 
-const aplicacion= express();
+const aplicacion = express();
 
-const PUERTO= 8080;
+const PUERTO = 8080;
 
 // Lineas para usar Json
-aplicacion.use(express.json())
-aplicacion.use(express.urlencoded({extended: true}))
-
+aplicacion.use(express.json());
+aplicacion.use(express.urlencoded({ extended: true }));
 
 // Router
-const {Router} = express; 
+const { Router } = express;
 
 // Definir rutas
 
-const rutaProductos= Router();
-
+const rutaProductos = Router();
 
 //Endpoints
 
-aplicacion.use('/api', rutaProductos);
+aplicacion.use("/api", rutaProductos);
 
-rutaProductos.get('/productos', (peticion, respuesta)=>{
+rutaProductos.get("/productos", (peticion, respuesta) => {
+  getAll().then(() => {
+    respuesta.json(Arreglodeproductos);
+  });
+});
 
-    getAll().then(()=> {
-      
-        respuesta.json(
+rutaProductos.get("/productoRandom", (peticion, respuesta) => {
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
 
-            Arreglodeproductos
-            
-        );
+  leerarchivo().then(() => {
+    getByID(getRandomInt(1, Arreglodeproductos.length)).then(() => {
+      respuesta.json(objetobuscado);
+    });
+  });
+});
 
-    }
-    
-    ) 
-})
+rutaProductos.get("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
 
-rutaProductos.get('/productoRandom', (peticion, respuesta)=>{
-    
-    function getRandomInt(min, max){
-        min= Math.ceil(min);
-        max= Math.floor(max)
-        return Math.floor(Math.random()* (max-min + 1) + min);
-    }
+  leerarchivo().then(() => {
+    getByID(id).then(() => {
+      if (objetobuscado) {
+        respuesta.json(objetobuscado);
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+});
 
-    leerarchivo().then(()=>{
+rutaProductos.post("/productos", (peticion, respuesta) => {
+  const producto = peticion.body;
+  Save(producto).then(() => {
+    getByID(idproductos).then(() => {
+      if (objetobuscado) {
+        respuesta.json(objetobuscado);
+      } else {
+        respuesta.json({ error: "falla al buscar el producto agregado" });
+      }
+    });
+  });
+});
 
-        getByID(getRandomInt(1, Arreglodeproductos.length)).then(()=> {
+rutaProductos.put("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
 
-            respuesta.json(
-    
-            objetobuscado
-                
-            );
-    
-        }
-        
-        ) 
+  const Objeto = peticion.body;
 
+  leerarchivo().then(() => {
+    getByID(id).then(() => {
+      if (objetobuscado) {
+        deleteByID(id).then(() => {
+          leerarchivo()
+            .then(() => {
+              const Objetox = {
+                ...Objeto,
+                id: id,
+              };
 
-    }
-    
-    )
+              Arreglodeproductos.push(Objetox);
+            })
+            .then(() => {
+              fs.promises.writeFile(
+                "./productos.txt",
+                JSON.stringify(Arreglodeproductos, 1, "\n")
+              );
+            });
+        });
 
-    
-})
+        respuesta.json("producto actualizado");
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+});
 
-rutaProductos.get('/productos/:id', (peticion, respuesta)=>{
-    
-    const id = parseInt(peticion.params.id);
+rutaProductos.delete("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
 
-    leerarchivo().then(()=>{
-
-        getByID(id).then(()=> {
-
-            if (objetobuscado) {
-                respuesta.json(
-    
-                    objetobuscado
-                        
-                    );
-            } else {
-                respuesta.status(404)
-                respuesta.json({ error: "producto no encontrado"})
-            }
-            
-            
-    
-        }
-        
-        ) 
-
-
-    }
-    
-    )
-
-    
-})
-
-rutaProductos.post('/productos', (peticion, respuesta)=>{
-    const producto= peticion.body;
-    Save(producto).then(()=>{
-
-                getByID(idproductos).then(()=> {
-
-                if (objetobuscado) {
-                    respuesta.json(
-    
-                    objetobuscado
-                        
-                    );
-                } else {
-                respuesta.json({ error: "falla al buscar el producto agregado"})
-                }
-            
-            
-    
-             }
-    
-    )
-
-    })
-    
-})
-
-
-rutaProductos.put('/productos/:id', (peticion, respuesta)=>{
-    
-    const id = parseInt(peticion.params.id);
-
-    const Objeto= peticion.body;
-
-    leerarchivo().then(()=>{
-
-        getByID(id).then(()=> {
-
-            if (objetobuscado) {
-                deleteByID(id).then(()=>{
-
-                    leerarchivo().then(()=>{
-                        
-                        const Objetox = {
-                            ...Objeto,
-                            id: id,
-                        };
-        
-                        Arreglodeproductos.push(Objetox)
-
-                    }).then(()=>{
-                        fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
-
-                    })
-
-                })
-    
-                respuesta.json(
-    
-                    "producto actualizado"
-                        
-                    );
-            } else {
-                respuesta.status(404)
-                respuesta.json({ error: "producto no encontrado"})
-            }
-            
-            
-    
-        }
-        
-        ) 
-
-
-    }
-    
-    )
-
-    
-}) 
-
-
-rutaProductos.delete('/productos/:id', (peticion, respuesta)=>{
-    
-    const id = parseInt(peticion.params.id);
-
-    leerarchivo().then(()=>{
-
-        deleteByID(id).then(()=> {
-
-            if (objetobuscado) {
-                respuesta.json(
-    
-                    "producto eliminado"
-                        
-                    );
-            } else {
-                respuesta.status(404)
-                respuesta.json({ error: "producto no encontrado"})
-            }
-            
-            
-    
-        }
-        
-        ) 
-
-
-    }
-    
-    )
-
-    
-})
-
-
-
-
-
+  leerarchivo().then(() => {
+    deleteByID(id).then(() => {
+      if (objetobuscado) {
+        respuesta.json("producto eliminado");
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+});
 
 ////////// Carpeta public visible
 
-aplicacion.use(express.static(__dirname+ '/public'));
+aplicacion.use(express.static(__dirname + "/public"));
 
+const conexionServidor = aplicacion.listen(PUERTO, () => {
+  console.log(
+    `Aplicación escuchando en el puerto: ${conexionServidor.address().port}`
+  );
+});
 
-
-const conexionServidor= aplicacion.listen(PUERTO, ()=>{
-    console.log(`Aplicación escuchando en el puerto: ${conexionServidor.address().port}`);
-})
-
-conexionServidor.on('error', error => console.log(`Ha ocurrido un error: ${error}`))
-
+conexionServidor.on("error", (error) =>
+  console.log(`Ha ocurrido un error: ${error}`)
+);
 
 ////Funciones
 
-async function leerarchivo(){
-    try {
-       
-       if (contenido= await fs.promises.readFile('./productos.txt', 'utf-8')) {
-        archivo = (JSON.parse(contenido));
-        Arreglodeproductos = archivo
-        idproductos=  Arreglodeproductos.length + 1
-       } else {
-        Arreglodeproductos= []
-       }
-      
+async function leerarchivo() {
+  try {
+    if ((contenido = await fs.promises.readFile("./productos.txt", "utf-8"))) {
+      archivo = JSON.parse(contenido);
+      Arreglodeproductos = archivo;
+      idproductos = Arreglodeproductos.length + 1;
+    } else {
+      Arreglodeproductos = [];
     }
-    catch(error) {
-        console.log("error de lectura del archivo", error)
-    }
-
+  } catch (error) {
+    console.log("error de lectura del archivo", error);
+  }
 }
 
-async function Save (Objeto){
-        
-    try {
+async function Save(Objeto) {
+  try {
+    await leerarchivo();
 
-        await leerarchivo()
-        
-        Objeto = {
-            ...Objeto,
-            id: idproductos,
-        }
+    Objeto = {
+      ...Objeto,
+      id: idproductos,
+    };
 
-        console.log("el ID del producto agregado es", idproductos)
-        
-        Arreglodeproductos.push(Objeto)
-        
-        await fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
-       
-    }
-    catch(error){
-        console.log("hubo un error no se pudo guardar el ojbeto")
-    }
-    
+    console.log("el ID del producto agregado es", idproductos);
+
+    Arreglodeproductos.push(Objeto);
+
+    await fs.promises.writeFile(
+      "./productos.txt",
+      JSON.stringify(Arreglodeproductos, 1, "\n")
+    );
+  } catch (error) {
+    console.log("hubo un error no se pudo guardar el ojbeto");
+  }
 }
 
+async function getByID(idabuscar) {
+  try {
+    await leerarchivo();
 
-async function getByID (idabuscar){
-        
-    try {
-
-        await leerarchivo()
-        
-        if (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar)) {
-            return objetobuscado
-            // console.log(objetobuscado)
-        } else {
-            console.log(null)
-        }
-        
+    if (
+      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
+    ) {
+      return objetobuscado;
+      // console.log(objetobuscado)
+    } else {
+      console.log(null);
     }
-    catch(error){
-        console.log("error al buscar el id")
-    }
-    
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
 }
 
-async function getAll(){
-    await leerarchivo()
+async function getAll() {
+  await leerarchivo();
 
-    return Arreglodeproductos
+  return Arreglodeproductos;
 
-     console.log(Arreglodeproductos) 
-
+  console.log(Arreglodeproductos);
 }
 
-async function deleteByID (idabuscar){
-        
-    try {
+async function deleteByID(idabuscar) {
+  try {
+    await leerarchivo();
 
-        await leerarchivo()
-        
-        if (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar)) {
-            
-            Arreglodeproductos.splice(Arreglodeproductos.findIndex(a => a.id === idabuscar) , 1)
+    if (
+      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
+    ) {
+      Arreglodeproductos.splice(
+        Arreglodeproductos.findIndex((a) => a.id === idabuscar),
+        1
+      );
 
-            await fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
+      await fs.promises.writeFile(
+        "./productos.txt",
+        JSON.stringify(Arreglodeproductos, 1, "\n")
+      );
 
-            return objetobuscado
-
-
-        } else {
-            console.log("no existe ese archivo para borrar")
-        }
-        
+      return objetobuscado;
+    } else {
+      console.log("no existe ese archivo para borrar");
     }
-    catch(error){
-        console.log("error al buscar el id")
-    }
-    
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
 }
 
-async function deleteAll (){
-        
-    try {
+async function deleteAll() {
+  try {
+    await leerarchivo();
 
-        await leerarchivo()
-        
-        if (Arreglodeproductos) {
-            
-            Arreglodeproductos= []
+    if (Arreglodeproductos) {
+      Arreglodeproductos = [];
 
-            await fs.promises.writeFile("./productos.txt", JSON.stringify(Arreglodeproductos,1,"\n") )
-
-
-        } else {
-            console.log("no existen archivos para borrar")
-        }
-        
+      await fs.promises.writeFile(
+        "./productos.txt",
+        JSON.stringify(Arreglodeproductos, 1, "\n")
+      );
+    } else {
+      console.log("no existen archivos para borrar");
     }
-    catch(error){
-        console.log("error al buscar el id")
-    }
-    
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
 }
-
-
 
 class Contenedor {
-    constructor(title,price, thumbnail){
-        this.title=title
-        this.price=price
-        this.thumbnail=thumbnail
-
-    }
-
-
+  constructor(title, price, thumbnail) {
+    this.title = title;
+    this.price = price;
+    this.thumbnail = thumbnail;
+  }
 }
 
-const producto1= new Contenedor(
-    "Escuadra",
-    120,
-    "./img/Squadra.jpg",
-)
+const producto1 = new Contenedor("Escuadra", 120, "./img/Squadra.jpg");
 
-const producto2= new Contenedor(
-    "Calculadora",
-    120,
-    "./img/calculadora.jpg",
-    
-)
+const producto2 = new Contenedor("Calculadora", 120, "./img/calculadora.jpg");
 
-const producto3= new Contenedor(
-    "Globo terraqueo",
-    120,
-    "./img/globo.jpg",
- 
-)
-
+const producto3 = new Contenedor("Globo terraqueo", 120, "./img/globo.jpg");
 
 //Ejemplos: quitar el comentario para ver el funcionamiento
 
 //Save (producto3);
 
-//getByID(5); 
+//getByID(5);
 
 //getAll();
 
 //deleteByID(7)
 
 //deleteAll()
-
