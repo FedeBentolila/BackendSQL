@@ -3,13 +3,13 @@
 {
 
 
-"title": "Escuadra",
+"title": "Calculadora",
 
 
-"price": 120,
+"price": "100",
 
 
-"thumbnail": "./img/Squadra.jpg",
+"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Casio_fx-85WA_20050529.jpg",
 
 
 "id": 1
@@ -22,10 +22,10 @@
 "title": "Escuadra",
 
 
-"price": 120,
+"price": "200",
 
 
-"thumbnail": "./img/Squadra.jpg",
+"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Squadra_45.jpg",
 
 
 "id": 2
@@ -35,64 +35,16 @@
 {
 
 
-"title": "Escuadra",
+"title": "Globo terráqueo",
 
 
-"price": 120,
+"price": "300",
 
 
-"thumbnail": "./img/Squadra.jpg",
+"thumbnail": "https://www.tematika.com/media/catalog/Ilhsa/Imagenes/643575.jpg",
 
 
 "id": 3
-
-},
-
-{
-
-
-"title": "Calculadora",
-
-
-"price": 120,
-
-
-"thumbnail": "./img/calculadora.jpg",
-
-
-"id": 4
-
-},
-
-{
-
-
-"title": "Calculadora",
-
-
-"price": 120,
-
-
-"thumbnail": "./img/calculadora.jpg",
-
-
-"id": 5
-
-},
-
-{
-
-
-"title": "Globo terraqueo",
-
-
-"price": 120,
-
-
-"thumbnail": "./img/globo.jpg",
-
-
-"id": 6
 
 }
 ]

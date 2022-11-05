@@ -13,6 +13,10 @@ const aplicacion = express();
 
 const PUERTO = 8080;
 
+//Ejs
+
+aplicacion.set('view engine', 'ejs');
+
 // Lineas para usar Json
 aplicacion.use(express.json());
 aplicacion.use(express.urlencoded({ extended: true }));
@@ -26,13 +30,26 @@ const rutaProductos = Router();
 
 //Endpoints
 
-aplicacion.use("/api", rutaProductos);
+aplicacion.use("/", rutaProductos);
 
-rutaProductos.get("/productos", (peticion, respuesta) => {
+//get de ejercicio previo
+/* rutaProductos.get("/productos", (peticion, respuesta) => {
   getAll().then(() => {
     respuesta.json(Arreglodeproductos);
   });
 });
+ */
+
+rutaProductos.get("/productos", (peticion, respuesta) => {
+  getAll().then(() => {
+    respuesta.render('lista', {Arreglodeproductos});
+  });
+});
+
+rutaProductos.get("/", (peticion, respuesta) => {
+  respuesta.render('formulario', {});
+}); 
+
 
 rutaProductos.get("/productoRandom", (peticion, respuesta) => {
   function getRandomInt(min, max) {
@@ -63,7 +80,8 @@ rutaProductos.get("/productos/:id", (peticion, respuesta) => {
   });
 });
 
-rutaProductos.post("/productos", (peticion, respuesta) => {
+// post de ejercicio previo
+/* rutaProductos.post("/productos", (peticion, respuesta) => {
   const producto = peticion.body;
   Save(producto).then(() => {
     getByID(idproductos).then(() => {
@@ -74,7 +92,14 @@ rutaProductos.post("/productos", (peticion, respuesta) => {
       }
     });
   });
-});
+}); */
+
+rutaProductos.post("/productos", (peticion, respuesta) => {
+  const producto = peticion.body;
+  Save(producto).then(() => {
+      respuesta.render('formulario', {});
+  });
+}); 
 
 rutaProductos.put("/productos/:id", (peticion, respuesta) => {
   const id = parseInt(peticion.params.id);
@@ -256,11 +281,13 @@ class Contenedor {
   }
 }
 
-const producto1 = new Contenedor("Escuadra", 120, "./img/Squadra.jpg");
+//Productos previos
+
+/* const producto1 = new Contenedor("Escuadra", 120, "./img/Squadra.jpg");
 
 const producto2 = new Contenedor("Calculadora", 120, "./img/calculadora.jpg");
 
-const producto3 = new Contenedor("Globo terraqueo", 120, "./img/globo.jpg");
+const producto3 = new Contenedor("Globo terraqueo", 120, "./img/globo.jpg"); */
 
 //Ejemplos: quitar el comentario para ver el funcionamiento
 
