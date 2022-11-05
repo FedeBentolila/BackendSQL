@@ -1,0 +1,23 @@
+html
+    head
+        title Servidor de Productos 
+    body
+        a(href="/productos") Ir a la lista
+        h1 Ingrese los datos para agregar un producto
+        form(action="http://localhost:8080/productos" method="post")
+            label(for="title") Nombre:
+            br
+            input(type="text" id="title" name="title" value="")
+            br
+            label(for="price") Precio:
+            br
+            input(type="number" id="price" name="price" value="")
+            br
+            label(for="thumbnail") Url de imagen:
+            br
+            input(type="text" id="thumbnail" name="thumbnail" value="")
+            br
+            br
+            input(type="submit" value="Enviar")
+        
+    
