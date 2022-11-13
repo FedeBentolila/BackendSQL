@@ -62,5 +62,53 @@
 
 "id": 4
 
+},
+
+{
+
+
+"title": "lapiz",
+
+
+"price": "200",
+
+
+"thumbnail": "https://img.freepik.com/vector-gratis/lapiz_24908-54630.jpg?w=2000",
+
+
+"id": 5
+
+},
+
+{
+
+
+"title": "mochila",
+
+
+"price": "300",
+
+
+"thumbnail": "https://http2.mlstatic.com/D_NQ_NP_690352-MLA50554955332_072022-W.jpg",
+
+
+"id": 6
+
+},
+
+{
+
+
+"title": "Computadora",
+
+
+"price": "10000",
+
+
+"thumbnail": "https://www.tecnologia-informatica.com/wp-content/uploads/2018/07/funciones-de-la-computadora-1.jpeg",
+
+
+"id": 7
+
 }
 ]

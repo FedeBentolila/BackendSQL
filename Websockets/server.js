@@ -20,7 +20,7 @@ httpServer.listen(PUERTO, () => {
   );
 });
 
-const messages = [
+let messages = [
 ];
 
 
@@ -31,19 +31,23 @@ aplicacion.use(express.static(publicRoot));
 
 io.on('connection', function(socket){
   console.log('Un cliente se ha conectado');
-  socket.emit('messages', messages);
+  getAllmensajes().then(()=>{
+    socket.emit('messages', messages);
+  })
+  
   getAll().then(()=>{
     socket.emit('lineaproducto', Arreglodeproductos);
   })
 
   socket.on('new message', data=>{
-    messages.push(data);
-    io.sockets.emit('messages', messages)
+      Savemensajes(data).then(()=>{
+        io.sockets.emit('messages', messages)
+
+      })
+    
   });
 
   socket.on('new lineaproducto', data=>{
-
-    //ACA HAY UN ERROR
 
     Save(data).then(()=>{
       Objeto = {
@@ -68,118 +72,47 @@ aplicacion.get("/chat", (peticion, respuesta) => {
   respuesta.sendFile('chat.html', {root: publicRoot});
 });
 
-/* // Router
-const { Router } = express;
 
-// Definir rutas
-
-const rutaProductos = Router(); */
-
-//Endpoints
-
-/* aplicacion.use("/", rutaProductos);
-
-rutaProductos.get("/", (peticion, respuesta) => {
-  respuesta.render('formulario', {});
-}); 
-
-rutaProductos.get("/productos", (peticion, respuesta) => {
-  getAll().then(() => {
-    respuesta.render('lista', {Arreglodeproductos});
-  });
-});
+////Funciones para  mensajes
 
 
-rutaProductos.get("/productoRandom", (peticion, respuesta) => {
-  function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min);
+async function leerarchivodemensajes() {
+  try {
+    if ((contenido = await fs.promises.readFile("./mensajes.txt", "utf-8"))) {
+      archivo = JSON.parse(contenido);
+      messages = archivo;
+    } else {
+      messages = [];
+    }
+  } catch (error) {
+    console.log("error de lectura del archivo", error);
   }
+}
 
-  leerarchivo().then(() => {
-    getByID(getRandomInt(1, Arreglodeproductos.length)).then(() => {
-      respuesta.json(objetobuscado);
-    });
-  });
-});
+async function Savemensajes(Objeto) {
+  try {
+    await leerarchivodemensajes();
 
-rutaProductos.get("/productos/:id", (peticion, respuesta) => {
-  const id = parseInt(peticion.params.id);
+    messages.push(Objeto);
 
-  leerarchivo().then(() => {
-    getByID(id).then(() => {
-      if (objetobuscado) {
-        respuesta.json(objetobuscado);
-      } else {
-        respuesta.status(404);
-        respuesta.json({ error: "producto no encontrado" });
-      }
-    });
-  });
-});
+    await fs.promises.writeFile(
+      "./mensajes.txt",
+      JSON.stringify(messages, 1, "\n")
+    );
 
+  } catch (error) {
+    console.log("hubo un error no se pudo guardar el mensaje");
+  }
+ 
+}
 
-rutaProductos.post("/productos", (peticion, respuesta) => {
-  const producto = peticion.body;
-  Save(producto).then(() => {
-      respuesta.render('formulario', {});
-  });
-}); 
+async function getAllmensajes() {
+  await leerarchivodemensajes();
 
-rutaProductos.put("/productos/:id", (peticion, respuesta) => {
-  const id = parseInt(peticion.params.id);
+  return messages;
+}
 
-  const Objeto = peticion.body;
-
-  leerarchivo().then(() => {
-    getByID(id).then(() => {
-      if (objetobuscado) {
-        deleteByID(id).then(() => {
-          leerarchivo()
-            .then(() => {
-              const Objetox = {
-                ...Objeto,
-                id: id,
-              };
-
-              Arreglodeproductos.push(Objetox);
-            })
-            .then(() => {
-              fs.promises.writeFile(
-                "./productos.txt",
-                JSON.stringify(Arreglodeproductos, 1, "\n")
-              );
-            });
-        });
-
-        respuesta.json("producto actualizado");
-      } else {
-        respuesta.status(404);
-        respuesta.json({ error: "producto no encontrado" });
-      }
-    });
-  });
-});
-
-rutaProductos.delete("/productos/:id", (peticion, respuesta) => {
-  const id = parseInt(peticion.params.id);
-
-  leerarchivo().then(() => {
-    deleteByID(id).then(() => {
-      if (objetobuscado) {
-        respuesta.json("producto eliminado");
-      } else {
-        respuesta.status(404);
-        respuesta.json({ error: "producto no encontrado" });
-      }
-    });
-  });
-}); */
-
-
-
-////Funciones
+/// Funciones 
 
 async function leerarchivo() {
   try {
@@ -297,11 +230,5 @@ class Contenedor {
   }
 }
 
-//Productos previos
 
-/* const producto1 = new Contenedor("Escuadra", 120, "./img/Squadra.jpg");
-
-const producto2 = new Contenedor("Calculadora", 120, "./img/calculadora.jpg");
-
-const producto3 = new Contenedor("Globo terraqueo", 120, "./img/globo.jpg"); */
 

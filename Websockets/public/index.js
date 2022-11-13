@@ -32,7 +32,6 @@ function render2 (data){
 
 socket.on('lineaproducto', function(data) {render(data);});
 
-//Esto esta fallando
 
 socket.on('lineaproducto2', function(data) {render2(data);});
 
