@@ -4,9 +4,9 @@ const socket= io.connect();
 function render (data){
     const html= data.map((elem, index)=>{
         return (`<div>
-        <strong>${elem.author}</strong>
-        <em>${elem.text}</em>
-        <em>${elem.time}</em>
+        <strong style="color:blue; font-weight: bold;">${elem.author}</strong>
+        <em style="color:brown; ">${elem.time}</em>
+        <em style="color:green; font-weight: italic;" >${elem.text}</em>
         </div>`)
     }).join(" ");
 
