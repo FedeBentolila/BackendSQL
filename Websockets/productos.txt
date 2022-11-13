@@ -1,0 +1,66 @@
+[
+
+{
+
+
+"title": "Calculadora",
+
+
+"price": "100",
+
+
+"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Casio_fx-85WA_20050529.jpg",
+
+
+"id": 1
+
+},
+
+{
+
+
+"title": "Escuadra",
+
+
+"price": "200",
+
+
+"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Squadra_45.jpg",
+
+
+"id": 2
+
+},
+
+{
+
+
+"title": "Globo terráqueo",
+
+
+"price": "300",
+
+
+"thumbnail": "https://www.tematika.com/media/catalog/Ilhsa/Imagenes/643575.jpg",
+
+
+"id": 3
+
+},
+
+{
+
+
+"title": "voligoma",
+
+
+"price": "200",
+
+
+"thumbnail": "https://http2.mlstatic.com/D_NQ_NP_955624-MLA44585041247_012021-O.jpg",
+
+
+"id": 4
+
+}
+]

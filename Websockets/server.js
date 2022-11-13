@@ -1,0 +1,307 @@
+const fs = require("fs");
+
+let Arreglodeproductos = [];
+
+let idproductos = 1;
+
+const express = require("express");
+const {Server: HttpServer}= require('http');
+
+const {Server: IOServer}= require('socket.io');
+const aplicacion = express();
+const httpServer= new HttpServer(aplicacion);
+const io= new IOServer(httpServer);
+
+const PUERTO = 8080;
+
+httpServer.listen(PUERTO, () => {
+  console.log(
+    `Aplicación escuchando en el puerto: ${PUERTO}`
+  );
+});
+
+const messages = [
+];
+
+
+const publicRoot= "./public"
+
+aplicacion.use(express.static(publicRoot));
+
+
+io.on('connection', function(socket){
+  console.log('Un cliente se ha conectado');
+  socket.emit('messages', messages);
+  getAll().then(()=>{
+    socket.emit('lineaproducto', Arreglodeproductos);
+  })
+
+  socket.on('new message', data=>{
+    messages.push(data);
+    io.sockets.emit('messages', messages)
+  });
+
+  socket.on('new lineaproducto', data=>{
+
+    //ACA HAY UN ERROR
+
+    Save(data).then(()=>{
+      Objeto = {
+        ...data,
+        id: idproductos,
+      };
+    io.sockets.emit('lineaproducto2',Objeto )
+  })
+  });
+});
+
+
+// Lineas para usar Json
+aplicacion.use(express.json());
+aplicacion.use(express.urlencoded({ extended: true }));
+
+aplicacion.get("/", (peticion, respuesta) => {
+  respuesta.sendFile('index.html', {root: publicRoot});
+});
+
+aplicacion.get("/chat", (peticion, respuesta) => {
+  respuesta.sendFile('chat.html', {root: publicRoot});
+});
+
+/* // Router
+const { Router } = express;
+
+// Definir rutas
+
+const rutaProductos = Router(); */
+
+//Endpoints
+
+/* aplicacion.use("/", rutaProductos);
+
+rutaProductos.get("/", (peticion, respuesta) => {
+  respuesta.render('formulario', {});
+}); 
+
+rutaProductos.get("/productos", (peticion, respuesta) => {
+  getAll().then(() => {
+    respuesta.render('lista', {Arreglodeproductos});
+  });
+});
+
+
+rutaProductos.get("/productoRandom", (peticion, respuesta) => {
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  leerarchivo().then(() => {
+    getByID(getRandomInt(1, Arreglodeproductos.length)).then(() => {
+      respuesta.json(objetobuscado);
+    });
+  });
+});
+
+rutaProductos.get("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
+
+  leerarchivo().then(() => {
+    getByID(id).then(() => {
+      if (objetobuscado) {
+        respuesta.json(objetobuscado);
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+});
+
+
+rutaProductos.post("/productos", (peticion, respuesta) => {
+  const producto = peticion.body;
+  Save(producto).then(() => {
+      respuesta.render('formulario', {});
+  });
+}); 
+
+rutaProductos.put("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
+
+  const Objeto = peticion.body;
+
+  leerarchivo().then(() => {
+    getByID(id).then(() => {
+      if (objetobuscado) {
+        deleteByID(id).then(() => {
+          leerarchivo()
+            .then(() => {
+              const Objetox = {
+                ...Objeto,
+                id: id,
+              };
+
+              Arreglodeproductos.push(Objetox);
+            })
+            .then(() => {
+              fs.promises.writeFile(
+                "./productos.txt",
+                JSON.stringify(Arreglodeproductos, 1, "\n")
+              );
+            });
+        });
+
+        respuesta.json("producto actualizado");
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+});
+
+rutaProductos.delete("/productos/:id", (peticion, respuesta) => {
+  const id = parseInt(peticion.params.id);
+
+  leerarchivo().then(() => {
+    deleteByID(id).then(() => {
+      if (objetobuscado) {
+        respuesta.json("producto eliminado");
+      } else {
+        respuesta.status(404);
+        respuesta.json({ error: "producto no encontrado" });
+      }
+    });
+  });
+}); */
+
+
+
+////Funciones
+
+async function leerarchivo() {
+  try {
+    if ((contenido = await fs.promises.readFile("./productos.txt", "utf-8"))) {
+      archivo = JSON.parse(contenido);
+      Arreglodeproductos = archivo;
+      idproductos = Arreglodeproductos.length + 1;
+    } else {
+      Arreglodeproductos = [];
+    }
+  } catch (error) {
+    console.log("error de lectura del archivo", error);
+  }
+}
+
+async function Save(Objeto) {
+  try {
+    await leerarchivo();
+
+    Objeto = {
+      ...Objeto,
+      id: idproductos,
+    };
+
+    console.log("el ID del producto agregado es", idproductos);
+
+    Arreglodeproductos.push(Objeto);
+
+    await fs.promises.writeFile(
+      "./productos.txt",
+      JSON.stringify(Arreglodeproductos, 1, "\n")
+    );
+
+  } catch (error) {
+    console.log("hubo un error no se pudo guardar el ojbeto");
+  }
+ 
+}
+
+async function getByID(idabuscar) {
+  try {
+    await leerarchivo();
+
+    if (
+      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
+    ) {
+      return objetobuscado;
+      // console.log(objetobuscado)
+    } else {
+      console.log(null);
+    }
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
+}
+
+async function getAll() {
+  await leerarchivo();
+
+  return Arreglodeproductos;
+
+  console.log(Arreglodeproductos);
+}
+
+async function deleteByID(idabuscar) {
+  try {
+    await leerarchivo();
+
+    if (
+      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
+    ) {
+      Arreglodeproductos.splice(
+        Arreglodeproductos.findIndex((a) => a.id === idabuscar),
+        1
+      );
+
+      await fs.promises.writeFile(
+        "./productos.txt",
+        JSON.stringify(Arreglodeproductos, 1, "\n")
+      );
+
+      return objetobuscado;
+    } else {
+      console.log("no existe ese archivo para borrar");
+    }
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
+}
+
+async function deleteAll() {
+  try {
+    await leerarchivo();
+
+    if (Arreglodeproductos) {
+      Arreglodeproductos = [];
+
+      await fs.promises.writeFile(
+        "./productos.txt",
+        JSON.stringify(Arreglodeproductos, 1, "\n")
+      );
+    } else {
+      console.log("no existen archivos para borrar");
+    }
+  } catch (error) {
+    console.log("error al buscar el id");
+  }
+}
+
+class Contenedor {
+  constructor(title, price, thumbnail) {
+    this.title = title;
+    this.price = price;
+    this.thumbnail = thumbnail;
+  }
+}
+
+//Productos previos
+
+/* const producto1 = new Contenedor("Escuadra", 120, "./img/Squadra.jpg");
+
+const producto2 = new Contenedor("Calculadora", 120, "./img/calculadora.jpg");
+
+const producto3 = new Contenedor("Globo terraqueo", 120, "./img/globo.jpg"); */
+
