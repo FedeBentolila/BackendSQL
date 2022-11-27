@@ -1,8 +1,64 @@
-const fs = require("fs");
+var knex = require('knex')({
+  client: 'mysql',
+  connection: {
+    host: '127.0.0.1',
+    user: 'root',
+    password: '',
+    database: 'productos'
+  },
+  pool: { min: 0, max: 7 }
+});
+
+knex.schema.hasTable('productos')
+.then((existe)=>{
+  if (!existe) {
+    knex.schema.createTable('productos', (table) => {
+      table.increments('id')
+      table.string('title')
+      table.string('thumbnail')
+      table.integer('price')
+    })
+    .then(() => console.log("tabla creada"))
+    .finally(()=>{
+      knex.destroy();
+    }
+    )
+  
+  }
+
+})
+
+var knex2 = require('knex')({
+  client: 'sqlite3',
+  connection: {
+    filename:"./DB/mensajes.sqlite"
+  },
+  useNullAsDefault: true
+});
+
+knex2.schema.hasTable('mensajes')
+.then((existe)=>{
+  if (!existe) {
+    knex2.schema.createTable('mensajes', (table) => {
+      table.string('author')
+      table.string('text')
+      table.string('time')
+    })
+    .then(() => console.log("tabla creada"))
+    .finally(()=>{
+      knex2.destroy();
+    }
+    )
+  
+  }
+
+})
+
+
+
 
 let Arreglodeproductos = [];
 
-let idproductos = 1;
 
 const express = require("express");
 const {Server: HttpServer}= require('http');
@@ -31,34 +87,45 @@ aplicacion.use(express.static(publicRoot));
 
 io.on('connection', function(socket){
   console.log('Un cliente se ha conectado');
-  getAllmensajes().then(()=>{
+ 
+  getAllmensajessqlite().then(()=>{
     socket.emit('messages', messages);
+  }).then(()=>{
+    messages=[];
   })
-  
-  getAll().then(()=>{
+
+  getAllmysql().then(()=>{
     socket.emit('lineaproducto', Arreglodeproductos);
+  }).then(()=>{
+    Arreglodeproductos=[];
   })
+
 
   socket.on('new message', data=>{
-      Savemensajes(data).then(()=>{
+     savemensajessqlite(data).then(()=>{
+      getAllmensajessqlite().then(()=>{
         io.sockets.emit('messages', messages)
-
+      }).then(()=>{
+        messages=[];
       })
-    
+
+     })
+        
   });
 
   socket.on('new lineaproducto', data=>{
 
-    Save(data).then(()=>{
-      Objeto = {
-        ...data,
-        id: idproductos,
-      };
-    io.sockets.emit('lineaproducto2',Objeto )
+  savemysql(data).then(()=>{
+    getAllmysql().then(()=>{
+      socket.emit('lineaproducto2', Arreglodeproductos);
+    }).then(()=>{
+      Arreglodeproductos=[];
+    })
+
   })
+
   });
 });
-
 
 // Lineas para usar Json
 aplicacion.use(express.json());
@@ -76,159 +143,55 @@ aplicacion.get("/chat", (peticion, respuesta) => {
 ////Funciones para  mensajes
 
 
-async function leerarchivodemensajes() {
-  try {
-    if ((contenido = await fs.promises.readFile("./mensajes.txt", "utf-8"))) {
-      archivo = JSON.parse(contenido);
-      messages = archivo;
-    } else {
-      messages = [];
+async function savemensajessqlite(objeto){
+  await knex2('mensajes').insert(objeto)
+   .then(()=> console.log("mensaje insertado"))
+   .catch((err)=>{console.log(err); throw err})
+   
+ }
+
+async function getAllmensajessqlite(){
+  
+  await knex2.from('mensajes').select("*")
+  .then((rows)=>{
+    for (row of rows) {
+      let objeto ={author:row.author, text:row.text, time: row.time}
+
+      messages.push(objeto)
     }
-  } catch (error) {
-    console.log("error de lectura del archivo", error);
-  }
+
+  })
+  .catch((err)=>{console.log(err); throw err})
+  
+  
+
 }
 
-async function Savemensajes(Objeto) {
-  try {
-    await leerarchivodemensajes();
+/// Funciones para productos
 
-    messages.push(Objeto);
-
-    await fs.promises.writeFile(
-      "./mensajes.txt",
-      JSON.stringify(messages, 1, "\n")
-    );
-
-  } catch (error) {
-    console.log("hubo un error no se pudo guardar el mensaje");
-  }
- 
+async function savemysql(objeto){
+ await knex('productos').insert(objeto)
+  .then(()=> console.log("producto insertado"))
+  .catch((err)=>{console.log(err); throw err})
+  
 }
 
-async function getAllmensajes() {
-  await leerarchivodemensajes();
 
-  return messages;
-}
+async function getAllmysql(){
+  
+  await knex.from('productos').select("*")
+  .then((rows)=>{
+    for (row of rows) {
+      let objeto ={id:row.id, title:row.title, price: row.price, thumbnail: row.thumbnail}
 
-/// Funciones 
-
-async function leerarchivo() {
-  try {
-    if ((contenido = await fs.promises.readFile("./productos.txt", "utf-8"))) {
-      archivo = JSON.parse(contenido);
-      Arreglodeproductos = archivo;
-      idproductos = Arreglodeproductos.length + 1;
-    } else {
-      Arreglodeproductos = [];
+      Arreglodeproductos.push(objeto)
     }
-  } catch (error) {
-    console.log("error de lectura del archivo", error);
-  }
+
+  })
+  .catch((err)=>{console.log(err); throw err})
+  
 }
 
-async function Save(Objeto) {
-  try {
-    await leerarchivo();
-
-    Objeto = {
-      ...Objeto,
-      id: idproductos,
-    };
-
-    console.log("el ID del producto agregado es", idproductos);
-
-    Arreglodeproductos.push(Objeto);
-
-    await fs.promises.writeFile(
-      "./productos.txt",
-      JSON.stringify(Arreglodeproductos, 1, "\n")
-    );
-
-  } catch (error) {
-    console.log("hubo un error no se pudo guardar el ojbeto");
-  }
- 
-}
-
-async function getByID(idabuscar) {
-  try {
-    await leerarchivo();
-
-    if (
-      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
-    ) {
-      return objetobuscado;
-      // console.log(objetobuscado)
-    } else {
-      console.log(null);
-    }
-  } catch (error) {
-    console.log("error al buscar el id");
-  }
-}
-
-async function getAll() {
-  await leerarchivo();
-
-  return Arreglodeproductos;
-
-  console.log(Arreglodeproductos);
-}
-
-async function deleteByID(idabuscar) {
-  try {
-    await leerarchivo();
-
-    if (
-      (objetobuscado = Arreglodeproductos.find(({ id }) => id === idabuscar))
-    ) {
-      Arreglodeproductos.splice(
-        Arreglodeproductos.findIndex((a) => a.id === idabuscar),
-        1
-      );
-
-      await fs.promises.writeFile(
-        "./productos.txt",
-        JSON.stringify(Arreglodeproductos, 1, "\n")
-      );
-
-      return objetobuscado;
-    } else {
-      console.log("no existe ese archivo para borrar");
-    }
-  } catch (error) {
-    console.log("error al buscar el id");
-  }
-}
-
-async function deleteAll() {
-  try {
-    await leerarchivo();
-
-    if (Arreglodeproductos) {
-      Arreglodeproductos = [];
-
-      await fs.promises.writeFile(
-        "./productos.txt",
-        JSON.stringify(Arreglodeproductos, 1, "\n")
-      );
-    } else {
-      console.log("no existen archivos para borrar");
-    }
-  } catch (error) {
-    console.log("error al buscar el id");
-  }
-}
-
-class Contenedor {
-  constructor(title, price, thumbnail) {
-    this.title = title;
-    this.price = price;
-    this.thumbnail = thumbnail;
-  }
-}
 
 
 

@@ -17,18 +17,12 @@ function render (data){
 }}
 
 function render2 (data){
-        let contenedor = document.createElement("tr");
-        contenedor.innerHTML = 
-        `  
-        <td> ${data.id}</td>
-        <td>${data.title}</td>
-        <td> ${data.price} </td>
-        <td> <img src= ${data.thumbnail} width=100  alt=""> </td>
-        `;
-        document.getElementById("lineaproducto").appendChild(contenedor)
 
+   document.location.reload(true)
     
 }
+    
+
 
 socket.on('lineaproducto', function(data) {render(data);});
 
